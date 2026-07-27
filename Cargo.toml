@@ -1,0 +1,27 @@
+[package]
+name = "tray_detect"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+# ONNX Runtime bindings. `download-binaries` (on by default) fetches a prebuilt
+# ORT so school machines don't need anything installed separately.
+ort = { version = "=2.0.0-rc.12", features = ["download-binaries"] }
+ndarray = "0.16"
+
+# Cross-platform camera capture (AVFoundation / v4l2 / Media Foundation).
+nokhwa = { version = "0.10", features = ["input-native"] }
+
+# Frame buffers, drawing boxes/labels, font rasterization.
+image = "0.25"
+imageproc = "0.27"
+ab_glyph = "0.2"
+
+# Simple cross-platform window to show the live feed.
+minifb = "0.28"
+
+anyhow = "1"
+
+[profile.release]
+opt-level = 3
+lto = "thin"
