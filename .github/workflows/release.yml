@@ -1,0 +1,79 @@
+name: Release
+
+# Builds tray_detect natively on each OS (camera + window libs bind to
+# OS-native frameworks, so this can't be cross-compiled from one host) and
+# attaches a zip per platform to the GitHub Release for the pushed tag.
+on:
+  push:
+    tags:
+      - "v*.*.*"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: macos-14 # Apple Silicon
+            asset: tray_detect-macos-arm64
+            bin: tray_detect
+          - os: windows-latest
+            asset: tray_detect-windows-x64
+            bin: tray_detect.exe
+          - os: ubuntu-latest
+            asset: tray_detect-linux-x64
+            bin: tray_detect
+
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Linux build dependencies
+        if: matrix.os == 'ubuntu-latest'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libv4l-dev libx11-dev libxkbcommon-dev libwayland-dev pkg-config
+
+      - uses: dtolnay/rust-toolchain@stable
+
+      - uses: Swatinem/rust-cache@v2
+
+      - name: Build
+        run: cargo build --release
+
+      - name: Package
+        shell: bash
+        run: |
+          mkdir -p dist/${{ matrix.asset }}
+          cp target/release/${{ matrix.bin }} dist/${{ matrix.asset }}/
+          cp best.onnx dist/${{ matrix.asset }}/
+          cp README.md dist/${{ matrix.asset }}/
+          cd dist
+          if [ "${{ matrix.os }}" = "windows-latest" ]; then
+            7z a ${{ matrix.asset }}.zip ${{ matrix.asset }}
+          else
+            zip -r ${{ matrix.asset }}.zip ${{ matrix.asset }}
+          fi
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.asset }}
+          path: dist/${{ matrix.asset }}.zip
+
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/')
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: dist
+          merge-multiple: true
+
+      - uses: softprops/action-gh-release@v2
+        with:
+          files: dist/*.zip

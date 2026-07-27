@@ -56,6 +56,28 @@ actual waste contract. Current defaults:
 - `src/main.rs` — arg parsing, camera loop, still-image mode.
 - `assets/font.ttf` — Lato Regular (SIL Open Font License), embedded for labels.
 
+## Releasing
+
+Pushing a tag like `v0.1.0` triggers `.github/workflows/release.yml`, which
+builds natively on macOS (Apple Silicon), Windows, and Linux runners — camera
+(`nokhwa`) and window (`minifb`) libs bind to OS-native frameworks, so this
+can't be cross-compiled from a single host — and attaches a zip per platform
+(binary + `best.onnx` + README) to a GitHub Release for that tag:
+
+```sh
+git tag v0.1.0
+git push origin v0.1.0
+```
+
+The workflow can also be run manually (Actions tab → Release → Run workflow)
+to sanity-check a build without publishing a release; it only creates/updates
+a GitHub Release when triggered by a tag push.
+
+The download site (tray_detect_site) links to
+`releases/latest/download/tray_detect-<platform>.zip`, so asset names must
+stay `tray_detect-macos-arm64.zip`, `tray_detect-windows-x64.zip`, and
+`tray_detect-linux-x64.zip`.
+
 ## License notes
 
 `assets/font.ttf` is Lato, licensed under the SIL Open Font License 1.1.
