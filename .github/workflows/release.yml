@@ -27,13 +27,16 @@ jobs:
           - os: ubuntu-latest
             asset: tray_detect-linux-x64
             bin: tray_detect
+          - os: ubuntu-24.04-arm # e.g. Jetson, Raspberry Pi
+            asset: tray_detect-linux-arm64
+            bin: tray_detect
 
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
 
       - name: Install Linux build dependencies
-        if: matrix.os == 'ubuntu-latest'
+        if: matrix.os == 'ubuntu-latest' || matrix.os == 'ubuntu-24.04-arm'
         run: |
           sudo apt-get update
           sudo apt-get install -y libv4l-dev libx11-dev libxkbcommon-dev libwayland-dev pkg-config
