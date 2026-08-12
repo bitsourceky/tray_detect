@@ -22,6 +22,13 @@ minifb = "0.28"
 
 anyhow = "1"
 
+# Vendored with a fix for a crash on cameras (e.g. Logitech Brio) that expose
+# the same resolution in multiple pixel formats with different frame-rate
+# limits: upstream pairs a format with a frame-rate range from a different
+# format, and AVFoundation throws an uncaught exception. See vendor/README.md.
+[patch.crates-io]
+nokhwa-bindings-macos = { path = "vendor/nokhwa-bindings-macos" }
+
 [profile.release]
 opt-level = 3
 lto = "thin"
